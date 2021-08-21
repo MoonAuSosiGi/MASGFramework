@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
+using System.Text;
 
 namespace MoonAuSosiGi.UI
 {
@@ -107,12 +108,36 @@ namespace MoonAuSosiGi.UI
         }
 
 
-        // 하위에서 코드로 체크하고, 컨트롤러 및 컴포넌트를 삽입하는 로직
-        protected virtual void HasCheckAndAddChildren()
+        /// <summary>
+        /// 컨트롤러와 컴포넌트들을 등록한다.
+        /// </summary>
+        void HasCheckAndAddChildren()
         {
+            // >> 자식 컨트롤러 부터 등록한다.
+            {
+                var controllerData = GetChildControllerData();
+                SetupChildControllers(controllerData.controllerKeyArr, controllerData.controllerTypeArr);
+            }
+            // >> 자식 컴포넌트 등록
+            {
+                var componentData = GetChildComponentData();
+                SetupChildComponents(componentData.componentKeyArr,componentData.componentTypeArr);
+            }
         }
 
-
+        /// <summary>
+        /// 자식 컨트롤러들을 등록하기 위한 정보를 리턴해야 한다.
+        /// Type에 등록되는 정보는 UIControllerBase를 상속받은 클래스의 타입이어야 함.
+        /// </summary>
+        /// <returns></returns>
+        public abstract (int[] controllerKeyArr, Type[] controllerTypeArr) GetChildControllerData();
+        /// <summary>
+        /// 자식 컴포넌트들을 등록하기 위한 정보를 리턴해야한다.
+        /// Type에 등록되는 정보는 UIComponentBase를 상속받은 클래스의 타입이어야 함.
+        /// </summary>
+        /// <returns></returns>
+        public abstract (int[] componentKeyArr, Type[] componentTypeArr) GetChildComponentData();
+        
         public void SetParentController(UIControllerBase parent)
         {
             parentController = parent;
@@ -207,7 +232,7 @@ namespace MoonAuSosiGi.UI
         /// </summary>
         /// <param name="keyArray">키로 사용할 정수형 배열. 세팅할 컨트롤러 수 만큼 있어야 함</param>
         /// <param name="types">가져올 타입들. 키 배열 갯수만큼 주어져야 함</param>
-        protected void SetupChildControllers(int[] keyArray, Type[] types)
+        private void SetupChildControllers(int[] keyArray, Type[] types)
         {
             SetupChildControllersOrComponents(isChildControllers: true, keyArray, types);
         }
@@ -217,7 +242,7 @@ namespace MoonAuSosiGi.UI
         /// </summary>
         /// <param name="keyArray">키로 사용할 정수형 배열. 세팅할 컨트롤러 수 만큼 있어야 함</param>
         /// <param name="types">가져올 타입들. 키 배열 갯수만큼 주어져야 함</param>
-        protected void SetupChildComponents(int[] keyArray, Type[] types)
+        private void SetupChildComponents(int[] keyArray, Type[] types)
         {
             SetupChildControllersOrComponents(isChildControllers: false, keyArray, types);
         }
@@ -323,7 +348,7 @@ namespace MoonAuSosiGi.UI
         }
 
         /// <summary>
-        /// 현재 컴포넌트 리스트에 추가한다.
+        /// 현재 컴포넌트 딕셔너리에 추가한다.
         /// </summary>
         /// <param name="component"></param>
         protected bool AddChildUIComponent(int key, UIComponentBase component)
@@ -375,6 +400,27 @@ namespace MoonAuSosiGi.UI
         public void LogNormal(string normalMsg)
         {
             Debug.Log(normalMsg);
+        }
+
+        public void PrintAllChildren()
+        {
+            StringBuilder builder = new StringBuilder();
+            foreach (var childKeyPair in childControllerDic)
+            {
+                if(childKeyPair.Value != null)
+                    builder.Append($"Key {childKeyPair.Key} Controller {childKeyPair.Value.GetType().FullName}\n");
+                else
+                    builder.Append($"key {childKeyPair.Key} Controller is null!\n");
+            }
+
+            builder.Append("\n\n");
+            foreach (var childKeyPair in childComponentDic)
+            {
+                if(childKeyPair.Value != null)
+                    builder.Append($"Key {childKeyPair.Key} Component {childKeyPair.Value.GetType().FullName}\n");
+                else
+                    builder.Append($"key {childKeyPair.Key} Component is null!\n");
+            }
         }
     }
 }
